@@ -62,20 +62,31 @@ export const Home = () => {
     }
 
     setCycles( state => [...state, newCycle] );
+    setAmountSecondsPassed(0);
     setActiveCycleId(id);
 
     reset();
   };
 
   useEffect(() => {
+    let interval: number;
+
     if(activeCycle) {
-      setInterval(() => {
+      interval = setInterval(() => {
         setAmountSecondsPassed(
           differenceInSeconds(new Date(), activeCycle.startDate)
         )
       }, 1000)
     }
+
+    return () => {
+      clearInterval(interval);
+    }
   }, [activeCycle]);
+
+  useEffect(() => {
+    if(activeCycle) document.title = `${minutes}:${seconds}`
+  }, [minutes, seconds, activeCycle])
 
   return (
     <HomeContainer>
@@ -84,10 +95,15 @@ export const Home = () => {
           <label htmlFor="task"> Vou focar em</label>
           <Taskinput 
             type="text" 
-            id="task" 
+            id="task"
+            list="task-suggestions"
             placeholder="ex: estudar inglês..."
             {...register('task')}
           />
+
+          <datalist id="task-suggestions">
+            <option value="Projeto 1" />
+          </datalist>
 
           <label htmlFor="minutesAmount">durante</label>
           <MinutesAmountInput type="number" step={5} 
