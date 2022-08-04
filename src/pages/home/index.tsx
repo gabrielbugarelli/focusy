@@ -32,6 +32,7 @@ interface Cycle {
   minutesAmount: number;
   startDate: Date;
   interruptedDate?: Date;
+  finishedDate?: Date;
 }
 
 export const Home = () => {
@@ -95,16 +96,29 @@ export const Home = () => {
 
     if(activeCycle) {
       interval = setInterval(() => {
-        setAmountSecondsPassed(
-          differenceInSeconds(new Date(), activeCycle.startDate)
-        )
+        const secondsDifference = differenceInSeconds(new Date(), activeCycle.startDate)
+
+        if(secondsDifference >= totalSeconds) {
+          let finishedCycle = cycles.map(cycle => {
+            if(cycle.id === activeCycleId) {
+              return {...cycle, finishedDate: new Date()}
+            }
+            return cycle;
+          });
+      
+          setCycles(finishedCycle);
+          setAmountSecondsPassed(totalSeconds);
+          clearInterval(interval);
+        } else {
+          setAmountSecondsPassed(secondsDifference);
+        }
       }, 1000)
     }
 
     return () => {
       clearInterval(interval);
     }
-  }, [activeCycle]);
+  }, [activeCycle, totalSeconds, activeCycleId]);
 
   useEffect(() => {
     if(activeCycle) document.title = `${minutes}:${seconds}`
