@@ -1,6 +1,7 @@
-import { FormEvent, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { differenceInSeconds } from 'date-fns'
 import * as zod from 'zod'
 
 import { Play } from "phosphor-react"
@@ -20,6 +21,7 @@ interface Cycle {
   id: string;
   task: string;
   minutesAmount: number;
+  startDate: Date;
 }
 
 export const Home = () => {
@@ -55,7 +57,8 @@ export const Home = () => {
     const newCycle: Cycle = {
       id: id,
       task: data.task,
-      minutesAmount: data.minutesAmount
+      minutesAmount: data.minutesAmount,
+      startDate: new Date()
     }
 
     setCycles( state => [...state, newCycle] );
@@ -63,6 +66,16 @@ export const Home = () => {
 
     reset();
   };
+
+  useEffect(() => {
+    if(activeCycle) {
+      setInterval(() => {
+        setAmountSecondsPassed(
+          differenceInSeconds(new Date(), activeCycle.startDate)
+        )
+      }, 1000)
+    }
+  }, [activeCycle]);
 
   return (
     <HomeContainer>
