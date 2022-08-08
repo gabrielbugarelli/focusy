@@ -32,7 +32,7 @@ const BaseInput = styled.input`
   }
 `;
 
-export const Taskinput = styled(BaseInput)`
+export const TaskInput = styled(BaseInput)`
   flex: 1;
 
   &::-webkit-calendar-picker-indicator {
