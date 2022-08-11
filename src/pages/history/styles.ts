@@ -19,7 +19,6 @@ export const HistoryList = styled.div`
   flex: 1;
   overflow: auto;
   margin-top: 2rem;
-  /* overflow-y: scroll; */
 
   table {
     width: 100%;
@@ -50,7 +49,7 @@ export const HistoryList = styled.div`
 
       padding: 1rem;
 
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       line-height: 1.6;
 
       &:first-child {
