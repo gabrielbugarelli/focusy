@@ -1,90 +1,98 @@
-import { differenceInSeconds } from "date-fns";
-import { createContext, ReactNode, useEffect, useReducer, useState } from "react";
-import { addNewCycleAction, interruptCycleAction, markAsCycleFinishedAction } from "../reducers/cycles/actions";
-import { Cycle, CyclesReducer } from "../reducers/cycles/reducer";
+import { differenceInSeconds } from 'date-fns/esm'
+import {
+  createContext,
+  ReactNode,
+  useEffect,
+  useReducer,
+  useState,
+} from 'react'
+import {
+  createNewCycleAction,
+  interruptCurrentCycleAction,
+  markCurrentCycleAsFinishedAction,
+} from '../reducers/cycles/actions'
+import { Cycle, cyclesReducer, CyclesState } from '../reducers/cycles/reducer'
 
 interface CreateCycleData {
-  task: string;
-  minutesAmount: number;
+  task: string
+  minutesAmount: number
 }
 
-interface CyclesContextType {
+interface CyclesContextData {
   cycles: Cycle[]
   activeCycle: Cycle | undefined
   activeCycleId: string | null
-  amountSecondsPassed: number
   markCurrentCycleAsFinished: () => void
+  amountSecondsPassed: number
   setSecondsPassed: (seconds: number) => void
-  createNewCycle: (data: CreateCycleData)=> void
+  createNewCycle: (data: CreateCycleData) => void
   interruptCurrentCycle: () => void
 }
 
-export const CyclesContext = createContext({} as CyclesContextType)
-
 interface CyclesContextProviderProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
-export function CyclesContextProvider({ children }: CyclesContextProviderProps) {
-  const [cyclesState, dispatch] = useReducer(CyclesReducer, {
-    cycles: [],
-    activeCycleId: null
-  }, () => {
-    const storedStateAsJSON = localStorage.getItem('@focusy:cycles-state-v1.0.0')
-    
-    if(storedStateAsJSON) {
-      return JSON.parse(storedStateAsJSON);
-    }
-  });
+export const CyclesContext = createContext({} as CyclesContextData)
 
-  const { cycles, activeCycleId } = cyclesState;
+const initialValue: CyclesState = { cycles: [], activeCycleId: null }
+
+function init(initialValue: CyclesState) {
+  const storedStateAsJSON = localStorage.getItem(
+    '@focusy:cycles-state-v1.0.0',
+  )
+  if (storedStateAsJSON) {
+    return JSON.parse(storedStateAsJSON)
+  } else {
+    return initialValue
+  }
+}
+
+export function CyclesContextProvider({
+  children,
+}: CyclesContextProviderProps) {
+  const [cyclesState, dispatch] = useReducer(cyclesReducer, initialValue, init)
+  const { cycles, activeCycleId } = cyclesState
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(() => {
-    if(activeCycle) {
+    if (activeCycle) {
       return differenceInSeconds(new Date(), new Date(activeCycle.startDate))
+    } else {
+      return 0
     }
-
-    return 0
   })
-  
+
+  useEffect(() => {
+    const stateJSON = JSON.stringify(cyclesState)
+    if (cyclesState.cycles.length !== 0) {
+      localStorage.setItem('@focusy:cycles-state-v1.0.0', stateJSON)
+    }
+  }, [cyclesState])
+
   function setSecondsPassed(seconds: number) {
     setAmountSecondsPassed(seconds)
   }
 
   function markCurrentCycleAsFinished() {
-    dispatch(
-      markAsCycleFinishedAction()
-    )
+    dispatch(markCurrentCycleAsFinishedAction())
   }
 
   function createNewCycle(data: CreateCycleData) {
     const id = String(new Date().getTime())
-
     const newCycle: Cycle = {
       id,
       task: data.task,
       minutesAmount: data.minutesAmount,
       startDate: new Date(),
     }
-
-    dispatch(
-      addNewCycleAction(newCycle)
-    );
-
+    dispatch(createNewCycleAction(newCycle))
     setAmountSecondsPassed(0)
   }
 
   function interruptCurrentCycle() {
-    dispatch(
-      interruptCycleAction()
-    );
+    dispatch(interruptCurrentCycleAction())
   }
-
-  useEffect(() => {
-    const stateJSON = JSON.stringify(cyclesState); 
-    localStorage.setItem('@focusy:cycles-state-v1.0.0', stateJSON);
-  }, [cyclesState]);
 
   return (
     <CyclesContext.Provider
@@ -96,10 +104,10 @@ export function CyclesContextProvider({ children }: CyclesContextProviderProps) 
         amountSecondsPassed,
         setSecondsPassed,
         createNewCycle,
-        interruptCurrentCycle
+        interruptCurrentCycle,
       }}
     >
       {children}
     </CyclesContext.Provider>
-  );
+  )
 }
