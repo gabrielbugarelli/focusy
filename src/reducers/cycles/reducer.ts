@@ -10,12 +10,12 @@ export interface Cycle {
   finishedDate?: Date
 }
 
-interface CyclesState {
+export interface CyclesState {
   cycles: Cycle[];
   activeCycleId: string | null;
 }
 
-export const CyclesReducer = (state: CyclesState, action: any) => {
+export const cyclesReducer = (state: CyclesState, action: any) => {
   switch(action.type) {
     case ActionTypes.ADD_NEW_CYCLE:
       // return {
